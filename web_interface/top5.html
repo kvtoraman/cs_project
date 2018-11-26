@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <form>
+      <div class="form-group">
+        <label for="select-class">Select the class:</label>
+        <select class="form-control" id="select-class" onchange="updateReviews()">
+        </select>
+      </div>
+    </form>
+    <ul class="list-group" id="top-5-reviews">
+    </ul>
+    <script>
+    /*global $*/
+    /*global fetch*/
+    function updateReviews(){
+      var new_class = $("#select-class")[0].selectedOptions[0].id;
+      $(".list-group-item").remove()
+      for(var i=0;i < mp_to_reviews[new_class].length;i++){
+        $("#top-5-reviews").append('<li class="list-group-item">' + 
+        mp_to_reviews[new_class][i][1] + '</li>')
+      }
+    }
+    var mp_to_reviews = {}
+    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
+    .done(function( data ) {
+       console.log(data)
+       var course_list = []
+       for(var i=0;i<data.length;i++){
+         course_list.push(data[i].course_code);
+         
+         mp_to_reviews[data[i].course_code]= data[i].top_5;
+       }
+       for(var i=0;i<5;i++){
+         $("#select-class").append("<option id="+data[i].course_code+">"+data[i].course_code+"</option>")
+       
+       }
+    });
+    </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+  </body>
+</html>
