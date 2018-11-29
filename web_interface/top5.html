@@ -26,26 +26,23 @@
     /*global fetch*/
     var pos_words = []
     var neg_words = []
-    function color_pos(review, word){
-      // console.log(word)
+    var banned_words = ["합니다","됩니다"]
+    function color_pos(is_pos, review, word){
+      if(word.length < 1)
+        return review;
+      if(banned_words.includes(word))
+        return review;
+      console.log(word)
       var splitted = review.split(word)
       var result = ""
-      for(var i=0; i<splitted.length; i++){
-        if(i>0)
-          result += '<span class="text-primary">' + word + "</span>"
-        result += splitted[i]
-      }
-      return result
-      
-    }
-    function color_neg(review, word){
-      // console.log(word)
-      var splitted = review.split(word)
-      var result = ""
-      for(var i=0; i<splitted.length; i++){
-        if(i>0)
-          result += '<span class="text-primary">' + word + "</span>"
-        result += splitted[i]
+      for(var j=0; j<splitted.length; j++){
+        if(j>0)
+          if(is_pos)
+            result += '<span class="text-primary">' + word + "</span>";
+          else
+            result += '<span class="text-danger">' + word + "</span>";
+            
+        result += splitted[j];
       }
       return result
       
@@ -58,17 +55,23 @@
         s+='<li class="list-group-item">'
         var colored_review = mp_to_reviews[new_class][i][1]
         pos_words.forEach(word => {
-          colored_review = color_pos(colored_review,word)
+          colored_review = color_pos(true, colored_review,word)
         })
-        // neg_words.forEach(word => {
-        //   colored_review = color_neg(colored_review,word)
-        // })
+        neg_words.forEach(word => {
+          colored_review = color_pos(false, colored_review,word)
+        })
+        
         s+= colored_review
         s+='</li>'
         $("#top-5-reviews").append(s)
       }
     }
     var mp_to_reviews = {}
+    function is_in(s){
+      if(pos_words.includes(s) || neg_words.includes(s))
+        return true;
+      return false;
+    }
     function get_words(filename){
       $.get( "https://raw.githubusercontent.com/kvtoraman/cs_project/master/main_part/"+
       filename+".txt", function( data ) {
@@ -76,13 +79,19 @@
         for(var i=0;i<lines.length;i++){
           var a = lines[i].split("\t")
           console.log(a[1]);
-          if(a[1] > 0)
-            pos_words.push(a[0])
-          else
-            neg_words.push(a[0])
+          if(a[1] > 0){
+            if(!is_in(a[0]))
+              pos_words.push(a[0])
+          }
+          else{
+            if(!is_in(a[0]))
+              neg_words.push(a[0])
+          }
         }
         
         console.log(pos_words)
+        console.log(neg_words)
+        
       });
     }
     
@@ -99,8 +108,10 @@
          
          mp_to_reviews[data[i].course_code]= data[i].top_5;
        }
-       for(var i=0;i<5;i++){
-         $("#select-class").append("<option id="+data[i].course_code+">"+data[i].course_code+"</option>")
+       course_list.sort()
+       for(var i=0;i<data.length;i++){
+         $("#select-class").append("<option id=" + course_list[i] + ">" + 
+         course_list[i] + "</option>")
        
        }
     });
