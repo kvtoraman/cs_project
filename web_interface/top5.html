@@ -9,7 +9,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     
-    <title>Hello, world!</title>
+    <title>Sunburst of Reviews</title>
   </head>
   <body>
     <form>
@@ -26,7 +26,7 @@
     /*global fetch*/
     var pos_words = []
     var neg_words = []
-    var banned_words = ["합니다","됩니다"]
+    var banned_words = ["합니다","됩니다","c","os"]
     function color_pos(is_pos, review, word){
       if(word.length < 1)
         return review;
@@ -53,6 +53,9 @@
       for(var i=0;i < mp_to_reviews[new_class].length;i++){
         var s = "";
         s+='<li class="list-group-item">'
+        s+='Professor: '+mp_to_reviews[new_class][i][2]+'<br>'
+        
+        s+='Class taken in:'+mp_to_reviews[new_class][i][3]+'<br>'
         var colored_review = mp_to_reviews[new_class][i][1]
         pos_words.forEach(word => {
           colored_review = color_pos(true, colored_review,word)
@@ -67,6 +70,7 @@
       }
     }
     var mp_to_reviews = {}
+    var other_info = {}
     function is_in(s){
       if(pos_words.includes(s) || neg_words.includes(s))
         return true;
@@ -107,6 +111,7 @@
          course_list.push(data[i].course_code);
          
          mp_to_reviews[data[i].course_code]= data[i].top_5;
+         other_info[data[i].course_code] = {"professor":data[i].course_code};
        }
        course_list.sort()
        for(var i=0;i<data.length;i++){
