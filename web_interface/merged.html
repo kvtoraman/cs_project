@@ -1,233 +1,433 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script src='https://d3js.org/d3.v4.min.js'></script>
-    <title>Merged</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src='https://d3js.org/d3.v4.min.js'></script>
+  <title>Merged</title>
   </head>
   <body>
+  <a class="btn btn-primary" href="sunbirst.html" role="button">Go to Sunbirst Graph</a>
+  <h1>Course reviews </h1>
     <form>
-      <div class="form-group">
-        <label for="select-class">Select the class:</label>
-        <select class="form-control" id="select-class" onchange="updateAll()">
-        </select>
-      </div>
-    </form>
-    <svg width="960" height="500"></svg>
-    <ul class="list-group" id="top-5-reviews">
-    </ul>
-    <script>
-    /*global $*/
-    /*global d3*/
-    var mp_to_reviews = {}
-    var pos_words = []
-    var neg_words = []
-    var banned_words = ["합니다","됩니다"]
-    function updateAll(){
-        updateBarChart();
-        updateTop5();
-        
+    <div class="form-group">
+    <label for="select-class">Select the class:</label>
+    <select class="form-control" id="select-class" onchange="updateAll()">
+      <option id="select_class">Choose a class..</option>
+    </select>
+    </div>
+  </form>
+  <h3 id="after_this">Bar Chart of the class</h3>
+  <svg width="960" height="500" id="bar_chart"></svg>
+  
+  <h3>Top 5 reviews of this class</h3>
+  <ul class="list-group" id="top-5-reviews">
+    
+  </ul>
+  <script>
+  /*global $*/
+  /*global d3*/
+  var mp_to_reviews = {}
+  var pos_words = []
+  var neg_words = []
+  var banned_words = ["합니다","됩니다"]
+  var bc_svg, bc_x0, bc_x1, bc_y, bc_z,bc_margin,bc_width,bc_height,bc_g;
+  
+  function updateTop5(){
+    var new_class = $("#select-class")[0].selectedOptions[0].id;
+    $(".list-group-item").remove()
+    for(var i=0;i < mp_to_reviews[new_class].length;i++){
+    var s = "";
+    s+='<li class="list-group-item">'
+    var colored_review = mp_to_reviews[new_class][i][1]
+    pos_words.forEach(word => {
+      colored_review = color_pos(true, colored_review,word)
+    })
+    neg_words.forEach(word => {
+      colored_review = color_pos(false, colored_review,word)
+    })
+    
+    s+= colored_review
+    s+='</li>'
+    $("#top-5-reviews").append(s)
     }
-    function updateTop5(){
-      var new_class = $("#select-class")[0].selectedOptions[0].id;
-      $(".list-group-item").remove()
-      for(var i=0;i < mp_to_reviews[new_class].length;i++){
-        var s = "";
-        s+='<li class="list-group-item">'
-        var colored_review = mp_to_reviews[new_class][i][1]
-        pos_words.forEach(word => {
-          colored_review = color_pos(true, colored_review,word)
-        })
-        neg_words.forEach(word => {
-          colored_review = color_pos(false, colored_review,word)
-        })
-        
-        s+= colored_review
-        s+='</li>'
-        $("#top-5-reviews").append(s)
+  }
+  function is_in(s){
+    if(pos_words.includes(s) || neg_words.includes(s))
+    return true;
+    return false;
+  }
+  function get_words(filename){
+    $.get( "https://raw.githubusercontent.com/kvtoraman/cs_project/master/main_part/"+
+    filename+".txt", function( data ) {
+    var lines = data.split("\n");
+    for(var i=0;i<lines.length;i++){
+      var a = lines[i].split("\t")
+      // console.log(a[1]);
+      if(a[1] > 0){
+      if(!is_in(a[0]))
+        pos_words.push(a[0])
+      }
+      else{
+      if(!is_in(a[0]))
+        neg_words.push(a[0])
       }
     }
-    function is_in(s){
-      if(pos_words.includes(s) || neg_words.includes(s))
-        return true;
-      return false;
-    }
-    function get_words(filename){
-      $.get( "https://raw.githubusercontent.com/kvtoraman/cs_project/master/main_part/"+
-      filename+".txt", function( data ) {
-        var lines = data.split("\n");
-        for(var i=0;i<lines.length;i++){
-          var a = lines[i].split("\t")
-          console.log(a[1]);
-          if(a[1] > 0){
-            if(!is_in(a[0]))
-              pos_words.push(a[0])
-          }
-          else{
-            if(!is_in(a[0]))
-              neg_words.push(a[0])
-          }
-        }
-        
-        console.log(pos_words)
-        console.log(neg_words)
-        
-      });
-    }
-    function color_pos(is_pos, review, word){
-      if(word.length < 1)
-        return review;
-      if(banned_words.includes(word))
-        return review;
-      console.log(word)
-      var splitted = review.split(word)
-      var result = ""
-      for(var j=0; j<splitted.length; j++){
-        if(j>0)
-          if(is_pos)
-            result += '<span class="text-primary">' + word + "</span>";
-          else
-            result += '<span class="text-danger">' + word + "</span>";
-            
-        result += splitted[j];
-      }
-      return result
-      
-    }
-    function updateBarChart(){
-        $("svg").remove();
-        //d3.select("body").append("svg").attr("width",960).attr("height",500);
-        $(".form-group").after('<svg width="960" height="500"></svg>');
-        //$("body").append("svg").attr("width",960).attr("height",500);
-      var new_class = $("#select-class")[0].selectedOptions[0].id;
-      d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
-      for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
-      return d;
-    }, function(error, data) {
-      if (error) throw error;
     
-      var keys = data.columns.slice(1);
-      var svg = d3.select("svg"),
-      margin = {top: 20, right: 20, bottom: 30, left: 40},
-      width = +svg.attr("width") - margin.left - margin.right,
-      height = +svg.attr("height") - margin.top - margin.bottom,
-      g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      
-      x0.domain(data.map(function(d) { return d.Course; }));
-      x1.domain(keys).rangeRound([0, x0.bandwidth()]);
-      y.domain([d3.min(data, function(d) { return d3.min(keys, function(key) { return d[key]; }); }), d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+    // console.log(pos_words)
+    // console.log(neg_words)
     
-      g.append("g")
-        .selectAll("g")
-        .data(data)
-        .enter().append("g")
-          .attr("transform", function(d) { return "translate(" + x0(d.Course) + ",0)"; })
-        .selectAll("rect")
-        .data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
-        .enter().append("rect")
-          .attr("x", function(d) { return x1(d.key); })
-          .attr("y", function(d) { return y(d.value); })
-          .attr("width", x1.bandwidth())
-          .attr("height", function(d) { return height - y(d.value); })
-          .attr("fill", function(d) { return z(d.key); });
-    
-      g.append("g")
-          .attr("class", "axis")
-          .attr("transform", "translate(0," + height + ")")
-          .call(d3.axisBottom(x0));
-    
-      g.append("g")
-          .attr("class", "axis")
-          .call(d3.axisLeft(y).ticks(null, "s"))
-        .append("text")
-          .attr("x", 2)
-          .attr("y", y(y.ticks().pop()) + 0.5)
-          .attr("dy", "0.32em")
-          .attr("fill", "#000")
-          .attr("font-weight", "bold")
-          .attr("text-anchor", "start")
-          .text("Score");
-    
-      var legend = g.append("g")
-          .attr("font-family", "sans-serif")
-          .attr("font-size", 10)
-          .attr("text-anchor", "end")
-        .selectAll("g")
-        .data(keys.slice())
-        .enter().append("g")
-          .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-    
-      legend.append("rect")
-          .attr("x", width - 19)
-          .attr("width", 19)
-          .attr("height", 19)
-          .attr("fill", z);
-    
-      legend.append("text")
-          .attr("x", width - 24)
-          .attr("y", 9.5)
-          .attr("dy", "0.32em")
-          .text(function(d) { return d; });
     });
+  }
+  function color_pos(is_pos, review, word){
+    if(word.length < 1)
+    return review;
+    if(banned_words.includes(word))
+    return review;
+    // console.log(word)
+    var splitted = review.split(word)
+    var result = ""
+    for(var j=0; j<splitted.length; j++){
+    if(j>0)
+      if(is_pos)
+      result += '<span class="text-primary">' + word + "</span>";
+      else
+      result += '<span class="text-danger">' + word + "</span>";
       
+    result += splitted[j];
     }
+    return result
     
+  }
+  function updateBarChart(){
+    $("#bar_chart").remove();
+    //d3.select("body").append("svg").attr("width",960).attr("height",500);
+    $("#after_this").after('<svg width="960" height="500" id="bar_chart"></svg>');
+    //$("body").append("svg").attr("width",960).attr("height",500);
+    var new_class = $("#select-class")[0].selectedOptions[0].id;
+    d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
+    for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+    return d;
+  }, function(error, data) {
+    if (error) throw error;
+  
+    var keys = data.columns.slice(1);
+    bc_svg = d3.select("svg"),
+    bc_g = bc_svg.append("g").attr("transform", "translate(" + bc_margin.left + "," + bc_margin.top + ")");
+    
+    bc_x0.domain(data.map(function(d) { return d.Course; }));
+    bc_x1.domain(keys).rangeRound([0, bc_x0.bandwidth()]);
+    bc_y.domain([d3.min(data, function(d) { return d3.min(keys, function(key) { return d[key]; }); }), d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+  
+    bc_g.append("g")
+    .selectAll("g")
+    .data(data)
+    .enter().append("g")
+      .attr("transform", function(d) { return "translate(" + bc_x0(d.Course) + ",0)"; })
+    .selectAll("rect")
+    .data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+    .enter().append("rect")
+      .attr("x", function(d) { return bc_x1(d.key); })
+      .attr("y", function(d) { return bc_y(d.value); })
+      .attr("width", bc_x1.bandwidth())
+      .attr("height", function(d) { return bc_height - bc_y(d.value); })
+      .attr("fill", function(d) { return bc_z(d.key); });
+  
+    bc_g.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0," + bc_height + ")")
+      .call(d3.axisBottom(bc_x0));
+  
+    bc_g.append("g")
+      .attr("class", "axis")
+      .call(d3.axisLeft(bc_y).ticks(null, "s"))
+    .append("text")
+      .attr("x", 2)
+      .attr("y", bc_y(bc_y.ticks().pop()) + 0.5)
+      .attr("dy", "0.32em")
+      .attr("fill", "#000")
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "start")
+      .text("Score");
+  
+    var legend = bc_g.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+      .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(keys.slice())
+    .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+  
+    legend.append("rect")
+      .attr("x", bc_width - 19)
+      .attr("width", 19)
+      .attr("height", 19)
+      .attr("fill", bc_z);
+  
+    legend.append("text")
+      .attr("x", bc_width - 24)
+      .attr("bc_y", 9.5)
+      .attr("dy", "0.32em")
+      .text(function(d) { return d; });
+  });
+    
+  }
+  function initBarChart(){
+    
+    bc_svg = d3.select("svg");
+    bc_margin = {top: 20, right: 20, bottom: 30, left: 40};
+    bc_width = +bc_svg.attr("width") - bc_margin.left - bc_margin.right;
+    bc_height = +bc_svg.attr("height") - bc_margin.top - bc_margin.bottom;
+    bc_g = bc_svg.append("g").attr("transform", "translate(" + bc_margin.left + "," + bc_margin.top + ")");
+    
+    bc_x0 = d3.scaleBand()
+      .rangeRound([0, bc_width])
+      .paddingInner(0.1);
+    
+    bc_x1 = d3.scaleBand()
+      .padding(0.05);
+    
+    bc_y = d3.scaleLinear()
+      .rangeRound([bc_height, 0]);
+    
+    bc_z = d3.scaleOrdinal()
+      .range(["#0404b4", "#b43104", "#31b404"]);
+      
+  }
+  function initClasses(){
     $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
     .done(function( data ) {
-       for(var i=0;i<5;i++){
-         $("#select-class").append("<option id="+data[i].course_code+">"+data[i].course_code+"</option>")
-       
-       }});
-    var svg = d3.select("svg"),
-        margin = {top: 20, right: 20, bottom: 30, left: 40},
-        width = +svg.attr("width") - margin.left - margin.right,
-        height = +svg.attr("height") - margin.top - margin.bottom,
-        g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
-    var x0 = d3.scaleBand()
-        .rangeRound([0, width])
-        .paddingInner(0.1);
-    
-    var x1 = d3.scaleBand()
-        .padding(0.05);
-    
-    var y = d3.scaleLinear()
-        .rangeRound([height, 0]);
-    
-    var z = d3.scaleOrdinal()
-        .range(["#0404b4", "#b43104", "#31b404"]);
-    
-    get_words("Load");
-    get_words("Grade");
-    get_words("LectureQuality");
-    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
-    .done(function( data ) {
-       console.log(data)
+       //console.log(data)
        var course_list = []
        for(var i=0;i<data.length;i++){
          course_list.push(data[i].course_code);
-         
          mp_to_reviews[data[i].course_code]= data[i].top_5;
-       }
+        }
        course_list.sort()
        for(var i=0;i<data.length;i++){
-         $("#select-class").append("<option id=" + course_list[i] + ">" + 
-         course_list[i] + "</option>")
-       
+        $("#select-class").append("<option id=" + course_list[i] + ">" + 
+        course_list[i] + "</option>")
        }
     });
+  }
+  function initTop5(){
+    get_words("Load");
+    get_words("Grade");
+    get_words("LectureQuality");
     
-    </script>
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  }
+  function initSunbirst(){
+    function buildHierarchy(csv) {
+            var root = {"name": "SoC", "children": []};
+            for (var i = 0; i < csv.length; i++) {
+            var sequence = csv[i][0];
+            var size = +csv[i][1];
+            if (isNaN(size)) { // e.g. if this is a header row
+              continue;
+            }
+            var parts = sequence.split("-");
+            var currentNode = root;
+            for (var j = 0; j < parts.length; j++) {
+              var children = currentNode["children"];
+              var nodeName = parts[j];
+              var childNode;
+              if (j + 1 < parts.length) {
+            // Not yet at the end of the sequence; move down the tree.
+             var foundChild = false;
+             for (var k = 0; k < children.length; k++) {
+               if (children[k]["name"] == nodeName) {
+                 childNode = children[k];
+                 foundChild = true;
+                 break;
+               }
+             }
+            // If we don't already have a child node for this branch, create it.
+             if (!foundChild) {
+               childNode = {"name": nodeName, "children": []};
+               children.push(childNode);
+             }
+             currentNode = childNode;
+              } else {
+             // Reached the end of the sequence; create a leaf node.
+             childNode = {"name": nodeName, "size": size};
+             children.push(childNode);
+              }
+            }
+            }
+            return root;
+        };
+        const width = window.innerWidth,
+            height = window.innerHeight,
+            maxRadius = (Math.min(width, height) / 2) - 5;
+
+        const formatNumber = d3.format(',d');
+
+        const x = d3.scaleLinear()
+            .range([0, 2 * Math.PI])
+            .clamp(true);
+
+        const y = d3.scaleSqrt()
+            .range([maxRadius*.1, maxRadius]);
+        
     
+        
+       
+        const color = d3.scaleOrdinal( d3.schemeCategory20);
+        
+        // const color = d3.schemeCategory20b;
+        
+
+        const partition = d3.partition();
+
+        const arc = d3.arc()
+            .startAngle(d => x(d.x0))
+            .endAngle(d => x(d.x1))
+            .innerRadius(d => Math.max(0, y(d.y0)))
+            .outerRadius(d => Math.max(0, y(d.y1)));
+
+        const middleArcLine = d => {
+            const halfPi = Math.PI/2;
+            const angles = [x(d.x0) - halfPi, x(d.x1) - halfPi];
+            const r = Math.max(0, (y(d.y0) + y(d.y1)) / 2);
+
+            const middleAngle = (angles[1] + angles[0]) / 2;
+            const invertDirection = middleAngle > 0 && middleAngle < Math.PI; // On lower quadrants write text ccw
+            if (invertDirection) { angles.reverse(); }
+
+            const path = d3.path();
+            path.arc(0, 0, r, angles[0], angles[1], invertDirection);
+            return path.toString();
+        };
+
+        const textFits = d => {
+            const CHAR_SPACE = 6;
+
+            const deltaAngle = x(d.x1) - x(d.x0);
+            const r = Math.max(0, (y(d.y0) + y(d.y1)) / 2);
+            const perimeter = r * deltaAngle;
+
+            return d.data.name.length * CHAR_SPACE < perimeter;
+        };
+
+        const svg = d3.select('body').append('svg')
+            .style('width', '100vw')
+            .style('height', '100vh')
+            .attr('viewBox', `${-width / 2} ${-height / 2} ${width} ${height}`)
+            .on('click', () => focusOn()); // Reset zoom on canvas click
+        
+        d3.text('https://raw.githubusercontent.com/kvtoraman/cs_project/master/json_parser/csonly_reviews_withsentiment_in_flare.csv', _text => {
+        // d3.text('test_flare.csv', _text => {
+            
+            var csv = d3.csvParseRows(_text);
+            var json = buildHierarchy(csv);
+            
+            var root = json;
+            root = d3.hierarchy(root);
+            root.sum(d => d.size);
+
+            const slice = svg.selectAll('g.slice')
+                .data(partition(root).descendants());
+
+            slice.exit().remove();
+
+            const newSlice = slice.enter()
+                .append('g').attr('class', 'slice')
+                .on('click', d => {
+                    d3.event.stopPropagation();
+                    focusOn(d);
+                });
+
+            newSlice.append('title')
+                .text(d => d.data.name + '\n' + formatNumber(d.value));
+            
+            newSlice.append('path')
+                .attr('class', 'main-arc')
+                .style('fill', d => color((d.children ? d : d).data.name))
+                .attr('d', arc);
+
+            newSlice.append('path')
+                .attr('class', 'hidden-arc')
+                .attr('id', (_, i) => `hiddenArc${i}`)
+                .attr('d', middleArcLine);
+
+            const text = newSlice.append('text')
+                .attr('display', d => textFits(d) ? null : 'none');
+
+            // Add white contour
+            text.append('textPath')
+                .attr('startOffset','50%')
+                .attr('xlink:href', (_, i) => `#hiddenArc${i}` )
+                .text(d => d.data.name)
+                .style('fill', 'none')
+                .style('stroke', '#fff')
+                .style('stroke-width', 5)
+                .style('stroke-linejoin', 'round');
+
+            text.append('textPath')
+                .attr('startOffset','50%')
+                .attr('xlink:href', (_, i) => `#hiddenArc${i}` )
+                .text(d => d.data.name);
+        });
+
+        function focusOn(d = { x0: 0, x1: 1, y0: 0, y1: 1 }) {
+            // Reset to top-level if no data point specified
+
+            const transition = svg.transition()
+                .duration(750)
+                .tween('scale', () => {
+                    const xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
+                        yd = d3.interpolate(y.domain(), [d.y0, 1]);
+                    return t => { x.domain(xd(t)); y.domain(yd(t)); };
+                });
+
+            transition.selectAll('path.main-arc')
+                .attrTween('d', d => () => arc(d));
+
+            transition.selectAll('path.hidden-arc')
+                .attrTween('d', d => () => middleArcLine(d));
+
+            transition.selectAll('text')
+                .attrTween('display', d => () => textFits(d) ? null : 'none');
+
+            moveStackToFront(d);
+
+            //
+
+            function moveStackToFront(elD) {
+                svg.selectAll('.slice').filter(d => d === elD)
+                    .each(function(d) {
+                        this.parentNode.appendChild(this);
+                        if (d.parent) { moveStackToFront(d.parent); }
+                    })
+            }
+        }
+  }
+  function updateAll(){
+    // initSunbirst();
+    updateBarChart();
+    updateTop5();
+    
+  }
+  function initAll(){
+    // initSunbirst();
+    initClasses();
+    initBarChart();
+    initTop5();
+    updateAll()
+  }
+  initAll()
+  
+  </script>
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  
   </body>
 </html>
