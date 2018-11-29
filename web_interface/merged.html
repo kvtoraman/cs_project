@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src='https://d3js.org/d3.v4.min.js'></script>
+    <title>Merged</title>
+  </head>
+  <body>
+    <form>
+      <div class="form-group">
+        <label for="select-class">Select the class:</label>
+        <select class="form-control" id="select-class" onchange="updateAll()">
+        </select>
+      </div>
+    </form>
+    <svg width="960" height="500"></svg>
+    <ul class="list-group" id="top-5-reviews">
+    </ul>
+    <script>
+    /*global $*/
+    /*global d3*/
+    var mp_to_reviews = {}
+    var pos_words = []
+    var neg_words = []
+    var banned_words = ["합니다","됩니다"]
+    function updateAll(){
+        updateBarChart();
+        updateTop5();
+        
+    }
+    function updateTop5(){
+      var new_class = $("#select-class")[0].selectedOptions[0].id;
+      $(".list-group-item").remove()
+      for(var i=0;i < mp_to_reviews[new_class].length;i++){
+        var s = "";
+        s+='<li class="list-group-item">'
+        var colored_review = mp_to_reviews[new_class][i][1]
+        pos_words.forEach(word => {
+          colored_review = color_pos(true, colored_review,word)
+        })
+        neg_words.forEach(word => {
+          colored_review = color_pos(false, colored_review,word)
+        })
+        
+        s+= colored_review
+        s+='</li>'
+        $("#top-5-reviews").append(s)
+      }
+    }
+    function is_in(s){
+      if(pos_words.includes(s) || neg_words.includes(s))
+        return true;
+      return false;
+    }
+    function get_words(filename){
+      $.get( "https://raw.githubusercontent.com/kvtoraman/cs_project/master/main_part/"+
+      filename+".txt", function( data ) {
+        var lines = data.split("\n");
+        for(var i=0;i<lines.length;i++){
+          var a = lines[i].split("\t")
+          console.log(a[1]);
+          if(a[1] > 0){
+            if(!is_in(a[0]))
+              pos_words.push(a[0])
+          }
+          else{
+            if(!is_in(a[0]))
+              neg_words.push(a[0])
+          }
+        }
+        
+        console.log(pos_words)
+        console.log(neg_words)
+        
+      });
+    }
+    function color_pos(is_pos, review, word){
+      if(word.length < 1)
+        return review;
+      if(banned_words.includes(word))
+        return review;
+      console.log(word)
+      var splitted = review.split(word)
+      var result = ""
+      for(var j=0; j<splitted.length; j++){
+        if(j>0)
+          if(is_pos)
+            result += '<span class="text-primary">' + word + "</span>";
+          else
+            result += '<span class="text-danger">' + word + "</span>";
+            
+        result += splitted[j];
+      }
+      return result
+      
+    }
+    function updateBarChart(){
+        $("svg").remove();
+        //d3.select("body").append("svg").attr("width",960).attr("height",500);
+        $(".form-group").after('<svg width="960" height="500"></svg>');
+        //$("body").append("svg").attr("width",960).attr("height",500);
+      var new_class = $("#select-class")[0].selectedOptions[0].id;
+      d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
+      for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+      return d;
+    }, function(error, data) {
+      if (error) throw error;
+    
+      var keys = data.columns.slice(1);
+      var svg = d3.select("svg"),
+      margin = {top: 20, right: 20, bottom: 30, left: 40},
+      width = +svg.attr("width") - margin.left - margin.right,
+      height = +svg.attr("height") - margin.top - margin.bottom,
+      g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      
+      x0.domain(data.map(function(d) { return d.Course; }));
+      x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+      y.domain([d3.min(data, function(d) { return d3.min(keys, function(key) { return d[key]; }); }), d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+    
+      g.append("g")
+        .selectAll("g")
+        .data(data)
+        .enter().append("g")
+          .attr("transform", function(d) { return "translate(" + x0(d.Course) + ",0)"; })
+        .selectAll("rect")
+        .data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+        .enter().append("rect")
+          .attr("x", function(d) { return x1(d.key); })
+          .attr("y", function(d) { return y(d.value); })
+          .attr("width", x1.bandwidth())
+          .attr("height", function(d) { return height - y(d.value); })
+          .attr("fill", function(d) { return z(d.key); });
+    
+      g.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x0));
+    
+      g.append("g")
+          .attr("class", "axis")
+          .call(d3.axisLeft(y).ticks(null, "s"))
+        .append("text")
+          .attr("x", 2)
+          .attr("y", y(y.ticks().pop()) + 0.5)
+          .attr("dy", "0.32em")
+          .attr("fill", "#000")
+          .attr("font-weight", "bold")
+          .attr("text-anchor", "start")
+          .text("Score");
+    
+      var legend = g.append("g")
+          .attr("font-family", "sans-serif")
+          .attr("font-size", 10)
+          .attr("text-anchor", "end")
+        .selectAll("g")
+        .data(keys.slice())
+        .enter().append("g")
+          .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+    
+      legend.append("rect")
+          .attr("x", width - 19)
+          .attr("width", 19)
+          .attr("height", 19)
+          .attr("fill", z);
+    
+      legend.append("text")
+          .attr("x", width - 24)
+          .attr("y", 9.5)
+          .attr("dy", "0.32em")
+          .text(function(d) { return d; });
+    });
+      
+    }
+    
+    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
+    .done(function( data ) {
+       for(var i=0;i<5;i++){
+         $("#select-class").append("<option id="+data[i].course_code+">"+data[i].course_code+"</option>")
+       
+       }});
+    var svg = d3.select("svg"),
+        margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = +svg.attr("width") - margin.left - margin.right,
+        height = +svg.attr("height") - margin.top - margin.bottom,
+        g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    var x0 = d3.scaleBand()
+        .rangeRound([0, width])
+        .paddingInner(0.1);
+    
+    var x1 = d3.scaleBand()
+        .padding(0.05);
+    
+    var y = d3.scaleLinear()
+        .rangeRound([height, 0]);
+    
+    var z = d3.scaleOrdinal()
+        .range(["#0404b4", "#b43104", "#31b404"]);
+    
+    get_words("Load");
+    get_words("Grade");
+    get_words("LectureQuality");
+    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
+    .done(function( data ) {
+       console.log(data)
+       var course_list = []
+       for(var i=0;i<data.length;i++){
+         course_list.push(data[i].course_code);
+         
+         mp_to_reviews[data[i].course_code]= data[i].top_5;
+       }
+       course_list.sort()
+       for(var i=0;i<data.length;i++){
+         $("#select-class").append("<option id=" + course_list[i] + ">" + 
+         course_list[i] + "</option>")
+       
+       }
+    });
+    
+    </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+  </body>
+</html>
