@@ -9,9 +9,32 @@
   stroke-width: 1.5px;
 }
 </style>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+</head>
+
+<body>
+  <form>
+    <div class="form-group">
+      <label for="select-class">Select the class:</label>
+      <select class="form-control" id="select-class" onchange="updateReviews()">
+      </select>
+    </div>
+  </form>
 <svg width="960" height="500"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
+
 <script>
+/*global d3*/
+/*global $*/
 var svg = d3.select("svg"),
     margin = {top: 20, right: 80, bottom: 30, left: 50},
     width = +svg.attr("width") - margin.left - margin.right,
@@ -24,55 +47,81 @@ var line = d3.line()
     .curve(d3.curveBasis)
     .x(function(d) { return x(d.Categories); })
     .y(function(d) { return y(d.Score); });
-d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/line/CS101%20line.csv", function(d, i, columns) {
-  d.Categories = d.Categories;
-  for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
-  return d;
-}, function(error, data) {
-  if (error) throw error;
-  var cities = data.columns.slice(1).map(function(id) {
-    return {
-      id: id,
-      values: data.map(function(d) {
-        return {Categories: d.Categories, Score: d[id]};
-      })
-    };
-  });
-  x.domain(data.map(function(d) { return d.Categories; }));
-  y.domain([
-    d3.min(cities, function(c) { return d3.min(c.values, function(d) { return d.Score; }); }),
-    d3.max(cities, function(c) { return d3.max(c.values, function(d) { return d.Score; }); })
-  ]);
-  z.domain(cities.map(function(c) { return c.id; }));
-  g.append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x));
-  g.append("g")
-      .attr("class", "axis")
-      .call(d3.axisLeft(y).ticks(null, "s"))
-      .append("text")
-    .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", "0.32em")
-      .attr("fill", "#000")
-      .attr("text-anchor", "end")
-      .text("Score");
-  var city = g.selectAll(".city")
-    .data(cities)
-    .enter().append("g")
-      .attr("class", "city");
-  city.append("path")
-      .attr("class", "line")
-      .attr("d", function(d) { return line(d.values); })
-      .style("stroke", function(d) { return z(d.id); });
-  city.append("text")
-      .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
-      .attr("transform", function(d) { return "translate(" + x(d.value.Categories) + "," + y(d.value.Score) + ")"; })
-      .attr("x", 3)
-      .attr("dy", "0.35em")
-      .style("font", "10px sans-serif")
-      .text(function(d) { return d.id; });
+
+//d3.selectAll("svg").remove();
+function updateReviews(){
+    $("svg").remove();
+    //d3.select("body").append("svg").attr("width",960).attr("height",500);
+    $("body").append('<svg width="960" height="500"></svg>');
+    //$("body").append("svg").attr("width",960).attr("height",500);
+  var new_class = $("#select-class")[0].selectedOptions[0].id;
+  d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/line/"+new_class+"%20line.csv", function(d, i, columns) {
+    d.Categories = d.Categories;
+    for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+    return d;
+  }, function(error, data) {
+    if (error) throw error;
+    var cities = data.columns.slice(1).map(function(id) {
+      return {
+        id: id,
+        values: data.map(function(d) {
+          return {Categories: d.Categories, Score: d[id]};
+        })
+      };
+    });
+    var svg = d3.select("svg"),
+    margin = {top: 20, right: 80, bottom: 30, left: 50},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom,
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    x.domain(data.map(function(d) { return d.Categories; }));
+    y.domain([
+      d3.min(cities, function(c) { return d3.min(c.values, function(d) { return d.Score; }); }),
+      d3.max(cities, function(c) { return d3.max(c.values, function(d) { return d.Score; }); })
+    ]);
+    z.domain(cities.map(function(c) { return c.id; }));
+    g.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
+    g.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(y).ticks(null, "s"))
+        .append("text")
+      .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", "0.32em")
+        .attr("fill", "#000")
+        .attr("text-anchor", "end")
+        .text("Score");
+    var city = g.selectAll(".city")
+      .data(cities)
+      .enter().append("g")
+        .attr("class", "city");
+    city.append("path")
+        .attr("class", "line")
+        .attr("d", function(d) { return line(d.values); })
+        .style("stroke", function(d) { return z(d.id); });
+    city.append("text")
+        .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
+        .attr("transform", function(d) { return "translate(" + x(d.value.Categories) + "," + y(d.value.Score) + ")"; })
+        .attr("x", 3)
+        .attr("dy", "0.35em")
+        .style("font", "10px sans-serif")
+        .text(function(d) { return d.id; });
 
 });
+}
+$.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/"+
+"master/charts-results/top_5_list.json")
+.done(function( data ) {
+   for(var i=0;i<data.length;i++){
+     $("#select-class").append("<option id="+data[i].course_code+">"+
+     data[i].course_code+"</option>");
+   
+     
+   }});
+   
+
 </script>
+</body>
