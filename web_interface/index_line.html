@@ -24,7 +24,7 @@ var line = d3.line()
     .curve(d3.curveBasis)
     .x(function(d) { return x(d.Categories); })
     .y(function(d) { return y(d.Score); });
-d3.csv("CS101 line.csv", function(d, i, columns) {
+d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/line/CS101%20line.csv", function(d, i, columns) {
   d.Categories = d.Categories;
   for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
   return d;
