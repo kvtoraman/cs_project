@@ -108,8 +108,10 @@
          
          mp_to_reviews[data[i].course_code]= data[i].top_5;
        }
-       for(var i=0;i<5;i++){
-         $("#select-class").append("<option id="+data[i].course_code+">"+data[i].course_code+"</option>")
+       course_list.sort()
+       for(var i=0;i<data.length;i++){
+         $("#select-class").append("<option id=" + course_list[i] + ">" + 
+         course_list[i] + "</option>")
        
        }
     });
