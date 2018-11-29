@@ -79,10 +79,12 @@ function updateReviews(){
       d3.min(cities, function(c) { return d3.min(c.values, function(d) { return d.Score; }); }),
       d3.max(cities, function(c) { return d3.max(c.values, function(d) { return d.Score; }); })
     ]);
+    var dl = data.length
+    var x_tranlate = -(1.0307*dl*dl -25.5823*dl+187.5858)
     z.domain(cities.map(function(c) { return c.id; }));
     g.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(0," + height + ")")
+        .attr("transform", "translate("+x_tranlate+ "," + height + ")")
         .call(d3.axisBottom(x));
     g.append("g")
         .attr("class", "axis")

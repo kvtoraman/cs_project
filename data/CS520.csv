@@ -1,4 +1,4 @@
-Course,Pos,Neg,PNS
-Lecture,0,0.2807422906765989,-0.2807422906765989
-Load,0,6.42926373477353,-6.42926373477353
-Grade,0,0.0,0.0
+Course,Pos,Neg
+Lecture,0,10.0
+Load,0,10.0
+Grade,0,10.0

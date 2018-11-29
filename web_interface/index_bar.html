@@ -25,7 +25,7 @@
   </form>
 
 
-<svg width="960" height="500"></svg>
+<svg width="780" height="500"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
@@ -36,7 +36,7 @@
 function updateReviews(){
     $("svg").remove();
     //d3.select("body").append("svg").attr("width",960).attr("height",500);
-    $("body").append('<svg width="960" height="500"></svg>');
+    $("body").append('<svg width="780" height="500"></svg>');
     //$("body").append("svg").attr("width",960).attr("height",500);
   var new_class = $("#select-class")[0].selectedOptions[0].id;
   d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
