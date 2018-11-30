@@ -28,7 +28,7 @@
     <div class="form-group">
     <label for="select-class">Select the class:</label>
     <select class="form-control" id="select-class" onchange="updateAll()">
-      <option id="select_class">Choose a class..</option>
+      <!--<option id="select_class">Choose a class..</option>-->
     </select>
     </div>
   </form>
@@ -45,7 +45,8 @@
   var mp_to_reviews = {}
   var pos_words = []
   var neg_words = []
-  var banned_words = ["합니다","됩니다","c","os","C","OS"]
+  var banned_words = ["합니다","됩니다"]
+  var always_good = ["A+","A0"];
   var bc_svg, bc_x0, bc_x1, bc_y, bc_z,bc_margin,bc_width,bc_height,bc_g;
   var line_svg ,line_margin,line_width ,line_height,line_g ;
   var line_x ,    line_y,    line_z ;
@@ -117,11 +118,18 @@
   
   function updateTop5(){
     var new_class = $("#select-class")[0].selectedOptions[0].id;
+    var to_eng = {"가을":"Fall","봄":"Spring"};
     $(".list-group-item").remove()
     for(var i=0;i < mp_to_reviews[new_class].length;i++){
     var s = "";
     s+='<li class="list-group-item">'
-    var colored_review = mp_to_reviews[new_class][i][1]
+    s+='<b>'
+        s+='Professor: '+mp_to_reviews[new_class][i][2]+'<br>'
+        
+        s+='Class taken in: ' + mp_to_reviews[new_class][i][3] + ' ' + to_eng[mp_to_reviews[new_class][i][4]]+'<br>'
+        s+='Likes: ' + mp_to_reviews[new_class][i][5] + '<br>'
+        s+='</b>'
+        var colored_review = mp_to_reviews[new_class][i][1]
     pos_words.forEach(word => {
       colored_review = color_pos(true, colored_review,word)
     })
@@ -163,7 +171,10 @@
   }
   function color_pos(is_pos, review, word){
     if(word.length < 1)
-    return review;
+      return review;
+    if(word.length<=2 && !always_good.includes(word))
+          word = " " + word + " ";
+      
     if(banned_words.includes(word))
     return review;
     // console.log(word)
@@ -326,7 +337,7 @@
     initBarChart();
     initLineChart();
     initTop5();
-    updateAll()
+    // updateAll();
   }
   initAll()
   

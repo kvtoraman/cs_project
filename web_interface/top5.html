@@ -26,13 +26,17 @@
     /*global fetch*/
     var pos_words = []
     var neg_words = []
-    var banned_words = ["합니다","됩니다","c","os"]
+    var banned_words = ["합니다","됩니다"];
+    var always_good = ["A+","A0"];
     function color_pos(is_pos, review, word){
       if(word.length < 1)
         return review;
+      if(word.length<=2 && !always_good.includes(word))
+        word = " " + word + " ";
+        
       if(banned_words.includes(word))
         return review;
-      console.log(word)
+      // console.log(word)
       var splitted = review.split(word)
       var result = ""
       for(var j=0; j<splitted.length; j++){
@@ -49,13 +53,18 @@
     }
     function updateReviews(){
       var new_class = $("#select-class")[0].selectedOptions[0].id;
+      var to_eng = {"가을":"Fall","봄":"Spring"};
       $(".list-group-item").remove()
+      console.log(mp_to_reviews[new_class][0]);
       for(var i=0;i < mp_to_reviews[new_class].length;i++){
         var s = "";
         s+='<li class="list-group-item">'
+        s+='<b>'
         s+='Professor: '+mp_to_reviews[new_class][i][2]+'<br>'
         
-        s+='Class taken in:'+mp_to_reviews[new_class][i][3]+'<br>'
+        s+='Class taken in: ' + mp_to_reviews[new_class][i][3] + ' ' + to_eng[mp_to_reviews[new_class][i][4]]+'<br>'
+        s+='Likes: ' + mp_to_reviews[new_class][i][5] + '<br>'
+        s+='</b>'
         var colored_review = mp_to_reviews[new_class][i][1]
         pos_words.forEach(word => {
           colored_review = color_pos(true, colored_review,word)
@@ -114,8 +123,11 @@
          other_info[data[i].course_code] = {"professor":data[i].course_code};
        }
        course_list.sort()
+       var selected_s = "chosen"
        for(var i=0;i<data.length;i++){
-         $("#select-class").append("<option id=" + course_list[i] + ">" + 
+         if(i>0)
+          selected_s = ""
+         $("#select-class").append("<option id=" + course_list[i] +" "+selected_s+ ">" + 
          course_list[i] + "</option>")
        
        }
