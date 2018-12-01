@@ -141,7 +141,7 @@
             .attr('viewBox', `${-width / 2} ${-height / 2} ${width} ${height}`)
             .on('click', () => focusOn()); // Reset zoom on canvas click
         
-        d3.text('https://raw.githubusercontent.com/kvtoraman/cs_project/master/json_parser/csonly_reviews_withsentiment_in_flare.csv', _text => {
+        d3.text('https://raw.githubusercontent.com/kvtoraman/cs_project/master/main_part/csonly_reviews_withsentiment_in_flare.csv', _text => {
         // d3.text('test_flare.csv', _text => {
             
             var csv = d3.csvParseRows(_text);
@@ -163,9 +163,21 @@
                     focusOn(d);
                 });
 
-            newSlice.append('title')
-                .text(d => d.data.name + '\n' + formatNumber(d.value));
-            
+            $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_course_list/cs_classes_info.txt")
+            .done(function( data ) {
+                console.log(data)
+                newSlice.append('title')
+                .text(d => {
+                    if(d.data.name in data){
+                        console.log(data[d.data.name].course_name);
+                        return data[d.data.name].course_name + '\n' + formatNumber(d.value);
+                    }
+                    else
+                        return d.data.name + '\n' + formatNumber(d.value);
+                });
+               
+            });
+
             newSlice.append('path')
                 .attr('class', 'main-arc')
                 .style('fill', d => color((d.children ? d : d).data.name))
