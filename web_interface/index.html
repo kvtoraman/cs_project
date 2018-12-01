@@ -23,7 +23,8 @@
   </head>
   <body>
   <a class="btn btn-primary" href="sunbirst.html" role="button">Go to Sunbirst Graph</a>
-  <h1>Course reviews </h1>
+  <h1>Course Reviews: Visualized </h1>
+  <p>This is a visualization of course reviews on OTL. For whole reviews, go to otl.kaist.ac.kr.</p>
     <form>
     <div class="form-group">
     <label for="select-class">Select the class:</label>
@@ -32,8 +33,9 @@
     </select>
     </div>
   </form>
-  <h3 id="after_this">Bar Chart of the class</h3>
+  <h3 id="bc_after_this">Semantic scoring of the class</h3>
   <svg width="960" height="500" id="bar_chart"></svg>
+  <h3 id="lc_after_this">Scoring of the class with timeline</h3>
   <svg width="960" height="500" id="line_chart"></svg>
   <h3>Top 5 reviews of this class</h3>
   <ul class="list-group" id="top-5-reviews">
@@ -58,7 +60,7 @@
   function updateLineChart(){
       $("#line_chart").remove();
       //d3.select("body").append("svg").attr("width",960).attr("height",500);
-      $("#bar_chart").after('<svg width="960" height="500" id="line_chart"></svg>');
+      $("#lc_after_this").after('<svg width="960" height="500" id="line_chart"></svg>');
       //$("body").append("svg").attr("width",960).attr("height",500);
     var new_class = $("#select-class")[0].selectedOptions[0].id;
     d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/line/"+new_class+"%20line.csv", function(d, i, columns) {
@@ -198,7 +200,7 @@
   function updateBarChart(){
     $("#bar_chart").remove();
     //d3.select("body").append("svg").attr("width",960).attr("height",500);
-    $("#after_this").after('<svg width="960" height="500" id="bar_chart"></svg>');
+    $("#bc_after_this").after('<svg width="960" height="500" id="bar_chart"></svg>');
     //$("body").append("svg").attr("width",960).attr("height",500);
     var new_class = $("#select-class")[0].selectedOptions[0].id;
     d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
