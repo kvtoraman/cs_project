@@ -124,6 +124,9 @@
     var new_class = $("#select-class")[0].selectedOptions[0].id;
     var to_eng = {"가을":"Fall","봄":"Spring"};
     $(".list-group-item").remove()
+    console.log(new_class)
+
+    console.log(mp_to_reviews)
     for(var i=0;i < mp_to_reviews[new_class].length;i++){
     var s = "";
     s+='<li class="list-group-item">'
@@ -310,30 +313,37 @@
       .y(function(d) { return line_y(d.Score); });
   }
   function initClasses(callback){
-    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
+    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_course_list/cs_classes_info.txt")
     .done(function( data ) {
-       //console.log(data)
+       console.log(data)
        var course_list = []
-       for(var i=0;i<data.length;i++){
-         course_list.push(data[i].course_code);
-         mp_to_reviews[data[i].course_code]= data[i].top_5;
+       for(var key in data){
+         course_list.push(key);
         }
        course_list.sort()
        var selected_str = "selected";
-       for(var i=0;i<data.length;i++){
+       for(var i=0;i<course_list.length;i++){
        	if(i>0)
        		selected_str = ""
         $("#select-class").append("<option id=" + course_list[i] + " "
         	+ selected_str+">" + 
-        course_list[i] + "</option>")
+        course_list[i] +" "+ data[course_list[i]].course_name + "</option>")
        }
        callback();
     });
   }
-  function initTop5(){
-    get_words("Load");
-    get_words("Grade");
-    get_words("LectureQuality");
+  function initTop5(callback){
+  	$.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
+    .done(function( data ) {
+    	for(var i=0;i<data.length;i++){
+        	mp_to_reviews[data[i].course_code]= data[i].top_5;
+        }
+        get_words("Load");
+	    get_words("Grade");
+	    get_words("LectureQuality");
+	    callback();
+    });
+    
     
   }
   function updateAll(){
@@ -348,8 +358,8 @@
     initClasses(function(){
 	    initBarChart();
 	    initLineChart();
-	    initTop5();
-	    updateAll();	
+	    initTop5(updateAll);
+	   
     });
   }
   $(document).ready(function f(){
