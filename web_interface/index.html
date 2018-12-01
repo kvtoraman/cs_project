@@ -45,8 +45,9 @@
   var mp_to_reviews = {}
   var pos_words = []
   var neg_words = []
-  var banned_words = ["합니다","됩니다"]
+  var banned_words = ["합니다","됩니다","쉽습니다"]
   var always_good = ["A+","A0"];
+  var front_space = ["쉽습니다"]
   var bc_svg, bc_x0, bc_x1, bc_y, bc_z,bc_margin,bc_width,bc_height,bc_g;
   var line_svg ,line_margin,line_width ,line_height,line_g ;
   var line_x ,    line_y,    line_z ;
@@ -171,10 +172,11 @@
   }
   function color_pos(is_pos, review, word){
     if(word.length < 1)
-      return review;
+    	return review;
     if(word.length<=2 && !always_good.includes(word))
-          word = " " + word + " ";
-      
+        word = " " + word + " ";
+    if(front_space.includes(word))
+    	word = " "+ word  
     if(banned_words.includes(word))
     return review;
     // console.log(word)
