@@ -49,6 +49,7 @@
   var always_good = ["A+","A0"];
   var front_space = ["쉽습니다"]
   var bc_svg, bc_x0, bc_x1, bc_y, bc_z,bc_margin,bc_width,bc_height,bc_g;
+  var complete_word = {"Pos":"Positive","Neg":"Negative","Lecture":"Lecture Quality","Load":"Course Load","Grade":"Grade Fairness"};
   var line_svg ,line_margin,line_width ,line_height,line_g ;
   var line_x ,    line_y,    line_z ;
   var line_line;
@@ -205,7 +206,10 @@
     return d;
   }, function(error, data) {
     if (error) throw error;
-  
+  	console.log(data);
+  	for(var i=0;i<3;i++){
+  		data[i].Course = complete_word[data[i].Course];
+  	}
     var keys = data.columns.slice(1);
     bc_svg = d3.select("#bar_chart"),
     bc_g = bc_svg.append("g").attr("transform", "translate(" + bc_margin.left + "," + bc_margin.top + ")");
@@ -213,7 +217,7 @@
     bc_x0.domain(data.map(function(d) { return d.Course; }));
     bc_x1.domain(keys).rangeRound([0, bc_x0.bandwidth()]);
     bc_y.domain([d3.min(data, function(d) { return d3.min(keys, function(key) { return d[key]; }); }), d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
-  
+
     bc_g.append("g")
     .selectAll("g")
     .data(data)
@@ -231,8 +235,8 @@
     bc_g.append("g")
       .attr("class", "axis")
       .attr("transform", "translate(0," + bc_height + ")")
-      .call(d3.axisBottom(bc_x0));
-  
+      .call(d3.axisBottom(bc_x0))
+
     bc_g.append("g")
       .attr("class", "axis")
       .call(d3.axisLeft(bc_y).ticks(null, "s"))
@@ -259,12 +263,11 @@
       .attr("width", 19)
       .attr("height", 19)
       .attr("fill", bc_z);
-  
     legend.append("text")
       .attr("x", bc_width - 24)
       .attr("bc_y", 9.5)
       .attr("dy", "0.32em")
-      .text(function(d) { return d; });
+      .text(function(d) { return complete_word[d]; });
   });
     
   }
