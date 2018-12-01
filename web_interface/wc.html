@@ -23,14 +23,18 @@
   <body>
     <canvas id=word_cloud height="800" width="1200"></canvas>
     <script type="text/javascript">
-	    $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_word_cloud_data/word_cloud_data2.json")
-	    .done(function( data ) {
+    function updateWordMap(){
+      $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_word_cloud_data/word_cloud_data2.json")
+      .done(function( data ) {
 
-	    	// var list = [["foo",12],["bar",24]];
-	    	var list = data["CS101"];
+        // var list = [["foo",12],["bar",24]];
+        var new_class = "CS101"
+        var list = data[new_class];
         WordCloud("word_cloud", { list: list } );
-    	});
-		
+      });
+    }
+    updateWordMap()
+	    
     </script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

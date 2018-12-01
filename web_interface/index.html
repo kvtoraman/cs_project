@@ -19,7 +19,8 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <script src='https://d3js.org/d3.v4.min.js'></script>
-  <title>Merged</title>
+  <script src="../src/wordcloud2.js"></script>
+  <title>iReview</title>
   </head>
   <body>
   <a class="btn btn-primary" href="sunbirst.html" role="button">Go to Sunbirst Graph</a>
@@ -37,10 +38,11 @@
   <svg width="960" height="500" id="bar_chart"></svg>
   <h3 id="lc_after_this">Scoring of the class with timeline</h3>
   <svg width="960" height="500" id="line_chart"></svg>
-  <h3>Top 5 reviews of this class</h3>
-  <ul class="list-group" id="top-5-reviews">
-    
+  <h3 id="top5_after_this">Top 5 reviews of this class</h3>
+  <ul class="list-group" id="top-5-reviews">  
   </ul>
+  <h3>Word Map</h3>
+  <canvas id=word_cloud height="800" width="1200"></canvas>
   <script>
   /*global $*/
   /*global d3*/
@@ -56,7 +58,16 @@
   var line_x ,    line_y,    line_z ;
   var line_line;
   var dl, line_x_translate;
-  
+  function updateWordMap(){
+      $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_word_cloud_data/word_cloud_data2.json")
+      .done(function( data ) {
+
+        // var list = [["foo",12],["bar",24]];
+        var new_class = $("#select-class")[0].selectedOptions[0].id;
+        var list = data[new_class];
+        WordCloud("word_cloud", { list: list } );
+      });
+  }
   function updateLineChart(){
       $("#line_chart").remove();
       //d3.select("body").append("svg").attr("width",960).attr("height",500);
@@ -351,6 +362,7 @@
     updateBarChart();
     updateLineChart();
     updateTop5();
+    updateWordMap();
     
   }
   function initAll(){
