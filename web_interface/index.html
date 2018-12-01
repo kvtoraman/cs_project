@@ -206,7 +206,7 @@
     return d;
   }, function(error, data) {
     if (error) throw error;
-  	console.log(data);
+  	// console.log(data);
   	for(var i=0;i<3;i++){
   		data[i].Course = complete_word[data[i].Course];
   	}
@@ -307,7 +307,7 @@
       .x(function(d) { return line_x(d.Categories); })
       .y(function(d) { return line_y(d.Score); });
   }
-  function initClasses(){
+  function initClasses(callback){
     $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/charts-results/top_5_list.json")
     .done(function( data ) {
        //console.log(data)
@@ -317,10 +317,15 @@
          mp_to_reviews[data[i].course_code]= data[i].top_5;
         }
        course_list.sort()
+       var selected_str = "selected";
        for(var i=0;i<data.length;i++){
-        $("#select-class").append("<option id=" + course_list[i] + ">" + 
+       	if(i>0)
+       		selected_str = ""
+        $("#select-class").append("<option id=" + course_list[i] + " "
+        	+ selected_str+">" + 
         course_list[i] + "</option>")
        }
+       callback();
     });
   }
   function initTop5(){
@@ -338,13 +343,17 @@
   }
   function initAll(){
     // initSunbirst();
-    initClasses();
-    initBarChart();
-    initLineChart();
-    initTop5();
-    // updateAll();
+    initClasses(function(){
+	    initBarChart();
+	    initLineChart();
+	    initTop5();
+	    updateAll();	
+    });
   }
-  initAll()
+  $(document).ready(function f(){
+	initAll();
+  });
+  
   
   </script>
   <!-- Optional JavaScript -->
