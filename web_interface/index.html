@@ -39,7 +39,7 @@
     </div>
   </form>
   <h3 id="bc_after_this">Semantic scoring of the class</h3>
-  <svg width="960" height="500" id="bar_chart"></svg>
+  <svg width="800" height="500" id="bar_chart"></svg>
   <h3 id="lc_after_this">Scoring of the class with timeline</h3>
   <svg width="960" height="500" id="line_chart"></svg>
   <h3 id="top5_after_this">Top 5 reviews of this class</h3>
@@ -120,7 +120,7 @@
           .attr("dy", "0.32em")
           .attr("fill", "#000")
           .attr("text-anchor", "end")
-          .text("Score");
+          .text("% Score");
       var city = line_g.selectAll(".city")
         .data(cities)
         .enter().append("g")
@@ -229,7 +229,7 @@
   function updateBarChart(){
     $("#bar_chart").remove();
     //d3.select("body").append("svg").attr("width",960).attr("height",500);
-    $("#bc_after_this").after('<svg width="960" height="500" id="bar_chart"></svg>');
+    $("#bc_after_this").after('<svg width="800" height="500" id="bar_chart"></svg>');
     //$("body").append("svg").attr("width",960).attr("height",500);
     var new_class = $("#select-class")[0].selectedOptions[0].id;
     d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
@@ -247,7 +247,7 @@
     
     bc_x0.domain(data.map(function(d) { return d.Course; }));
     bc_x1.domain(keys).rangeRound([0, bc_x0.bandwidth()]);
-    bc_y.domain([d3.min(data, function(d) { return d3.min(keys, function(key) { return d[key]; }); }), d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
+    bc_y.domain([d3.min(data, function(d) { return d3.min(keys, function(key) { return d[key]; }); }), 100]).nice();
 
     bc_g.append("g")
     .selectAll("g")
