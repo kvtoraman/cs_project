@@ -39,7 +39,7 @@
     </div>
   </form>
   <h3 id="bc_after_this">Semantic scoring of the class</h3>
-  <svg width="800" height="500" id="bar_chart"></svg>
+  <svg width="860" height="500" id="bar_chart"></svg>
   <h3 id="lc_after_this">Scoring of the class with timeline</h3>
   <svg width="960" height="500" id="line_chart"></svg>
   <h3 id="top5_after_this">Top 5 reviews of this class</h3>
@@ -120,7 +120,7 @@
           .attr("dy", "0.32em")
           .attr("fill", "#000")
           .attr("text-anchor", "end")
-          .text("% Score");
+          .text("Score");
       var city = line_g.selectAll(".city")
         .data(cities)
         .enter().append("g")
@@ -229,7 +229,7 @@
   function updateBarChart(){
     $("#bar_chart").remove();
     //d3.select("body").append("svg").attr("width",960).attr("height",500);
-    $("#bc_after_this").after('<svg width="800" height="500" id="bar_chart"></svg>');
+    $("#bc_after_this").after('<svg width="860" height="500" id="bar_chart"></svg>');
     //$("body").append("svg").attr("width",960).attr("height",500);
     var new_class = $("#select-class")[0].selectedOptions[0].id;
     d3.csv("https://raw.githubusercontent.com/kvtoraman/cs_project/master/data/"+new_class+".csv", function(d, i, columns) {
@@ -278,11 +278,11 @@
       .attr("fill", "#000")
       .attr("font-weight", "bold")
       .attr("text-anchor", "start")
-      .text("Score");
+      .text("% Score");
   
     var legend = bc_g.append("g")
       .attr("font-family", "sans-serif")
-      .attr("font-size", 10)
+      .attr("font-size", 12)
       .attr("text-anchor", "end")
     .selectAll("g")
     .data(keys.slice())
@@ -305,7 +305,7 @@
   function initBarChart(){
     
     bc_svg = d3.select("#bar_chart");
-    bc_margin = {top: 20, right: 20, bottom: 30, left: 40};
+    bc_margin = {top: 20, right: 20, bottom: 30, left: 80};
     bc_width = +bc_svg.attr("width") - bc_margin.left - bc_margin.right;
     bc_height = +bc_svg.attr("height") - bc_margin.top - bc_margin.bottom;
     bc_g = bc_svg.append("g").attr("transform", "translate(" + bc_margin.left + "," + bc_margin.top + ")");
