@@ -319,7 +319,7 @@
       line_y = d3.scaleLinear().rangeRound([line_height, 0]),
       line_z = d3.scaleOrdinal(d3.schemeCategory10);
       line_line = d3.line()
-      .curve(d3.curveBasis)
+      // .curve(d3.curveBasis)
       .x(function(d) { return line_x(d.Categories); })
       .y(function(d) { return line_y(d.Score); });
   }
