@@ -24,12 +24,16 @@
     <canvas id=word_cloud height="800" width="1200"></canvas>
     <script type="text/javascript">
     function updateWordMap(){
-      $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_word_cloud_data/word_cloud_data2.json")
+      $.getJSON("https://raw.githubusercontent.com/kvtoraman/cs_project/master/generate_word_cloud_data/word_cloud_data.json")
       .done(function( data ) {
 
         // var list = [["foo",12],["bar",24]];
         var new_class = "CS101"
         var list = data[new_class];
+        for(var i=0;i<list.length;i++){
+          list[i][1] += 20;
+        }
+
         WordCloud("word_cloud", { list: list } );
       });
     }
