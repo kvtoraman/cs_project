@@ -1,6 +1,6 @@
 # KAIST CS408 (CS Project)
 
-This is a work of KAIST CS Project class. 
+This is a work of KAIST CS Project class.   
 The demo is available on http://team5.ivyro.net/index.html
 ## Intro
 
@@ -10,5 +10,5 @@ This project has two parts
 
 ## Collaborators
 
-Mingyu Shin
+Mingyu Shin  
 Changho Jo
